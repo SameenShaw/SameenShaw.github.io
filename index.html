@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>时钟</title>
+		<style type="text/css">
+			canvas{
+				/*background: #F00FFF;*/
+			}
+		</style>
+	</head>
+	<body>
+	
+		<canvas id="canvas" ></canvas>
+		
+<script type="text/javascript">
+	
+	var canvas = document.querySelector("#canvas");
+	canvas.width=800;
+	canvas.height=800;
+
+	var context = canvas.getContext('2d');
+	var center = {x:0, y:0};
+	var background = "#fff";
+	var borderColor = "#222";
+	context.translate(400,400);
+	liubianxing();
+
+	kedu(context);
+	shizheng(context);
+	
+	setInterval( function(){
+		shizheng( context);
+	},50);
+ 
+ 
+ //绘制表盘
+	function kedu( cxt, R0, R1){
+		var R0 = R0 || 160;
+		var R1 = R1 || 150;
+		
+		//画两个圆
+		cxt.strokeStyle = borderColor;
+		context.lineWidth = "1";
+		context.moveTo( center.x+200, center.y);
+		cxt.arc(center.x,center.y,200,0,2*Math.PI);
+		cxt.moveTo( center.x+160, center.y);
+		cxt.arc(center.x,center.y,160,0,2*Math.PI,false);
+		cxt.stroke();
+		
+		//画刻度
+		for(var i =0 ; i< 60; i++ ){
+			var deg = (1/30  * Math.PI * i) - Math.PI/2;
+			var arr = [];
+			if( i %5 ==  0){
+				if( i % 15 == 0){
+					R1 = 140;
+					cxt.lineWidth = 5;
+				} else{
+					R1 = 145;
+					cxt.lineWidth = 3;
+				}
+			} else{
+				R1 = 150;
+				cxt.lineWidth = 1;
+			}			
+			arr.push({
+				x:R0  * Math.cos(  deg )+ center.x,
+				y:R0 * Math.sin(deg )+ center.y
+			});
+			arr.push({
+				x:R1  * Math.cos(  deg ) + center.x,
+				y:R1 * Math.sin(deg ) + center.y
+			});
+			drawLine(arr, cxt);
+		}
+		cxt.save();
+	}
+
+function liubianxing( ){
+	for(var i = -200; i <=200 ; i += 30){
+		for(var j = -200; j <=200 ; j += 30){
+			drawLine( coordPoint(6,10, i,j ) ,context);
+		}
+	}
+	
+	context.beginPath();
+	context.lineWidth = "800";
+	context.strokeStyle = background;
+	context.arc(center.x,center.y,600,0,2*Math.PI);
+	context.fillStyle = background;
+	context.closePath();
+	context.stroke();
+	
+	context.beginPath();
+	context.lineWidth = "0";
+	context.moveTo( center.x+160, center.y);
+	context.arc(center.x,center.y,160,0,2*Math.PI);
+	context.fill();
+	context.stroke();
+	
+}
+
+/* 绘制时针 */
+function shizheng(cxt){
+	
+	var h = [{x: -10,y:0},{x:40,y:0}];
+	var m = [{x: -15,y:0},{x:60,y:0}];
+	var s = [{x: -15,y:0},{x:90,y:0}];
+
+	cxt.restore();
+	cxt.clearRect(-100,-100, 200,200);
+	cxt.save();
+	var rota = jiaodu();
+	
+	rotateEx(rota.h , 10, h, cxt);
+	rotateEx(rota.m , 5, m, cxt);
+	rotateEx(rota.s , 1, s, cxt);
+	
+	function rotateEx( deg , width, obj , cxt ){
+		cxt.rotate(deg );
+		cxt.lineWidth = width;
+		drawLine(obj, cxt );
+		cxt.rotate(-deg);
+	}
+}
+//计算角度
+function jiaodu(){
+	var date = new Date();
+	h = date.getHours();
+	m= date.getMinutes();
+	s = date.getSeconds();
+	h = (h/(6) + m/(6*60) + s/(6*60*60) -0.5)*Math.PI;
+	m = (m/30 + s/(30*60) - 0.5)*Math.PI;
+	s = (s/30 - 0.5)*Math.PI;
+	return {h:h,m:m,s:s};
+}
+
+//计算正多变形顶点
+function  coordPoint( n , radius  , centerX, centerY, startDeg){
+	if(!startDeg){ startDeg = 0;}
+	var p = [];
+	for( var i = 0; i< n ; i++ ){
+		var x = radius  * Math.cos(  (2*Math.PI * (i +1 ) / n ) + startDeg );
+		var y = radius  * Math.sin(  (2*Math.PI * (i +1 ) / n ) + startDeg );
+		p.push({ x: x + centerX, y:y + centerY});
+	}
+	return p;
+}
+/*
+ drawLine()		根据坐标点画直线
+ pices		坐标点集合
+ cxt		
+ on			是否闭合  false 闭合  true 不闭合
+ */
+function  drawLine( pisec , cxt , on){
+	cxt.beginPath();
+	cxt.moveTo( pisec[0].x, pisec[0].y  );
+	for( var i=1; i < pisec.length; i++){
+		cxt.lineTo( pisec[i].x, pisec[i].y  );
+	}
+	if( !on ){
+		cxt.lineTo( pisec[0].x, pisec[0].y  );
+	}
+	cxt.closePath();
+//	cxt.fill();
+	cxt.stroke();
+}
+</script>
+
+
+	</body>
+</html>
